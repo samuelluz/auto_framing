@@ -1,8 +1,6 @@
 import cv2
 import numpy as np
 import os
-from PyQt5 import QtCore
-from PyQt5 import QtGui
 
 def detectar_enquadramento(thresh):
     mold_area = thresh.shape[0]*thresh.shape[1]
@@ -13,8 +11,7 @@ def detectar_enquadramento(thresh):
             x,y,w,h = cv2.boundingRect(cnt)
             # cv2.rectangle(mold,(x,y),(x+w,y+h),(0,0,255),2)
     if w == 0 or h == 0:
-        print('ERRO: Problema ao detectar enquadramento da moldura')
-        return -1
+        raise Exception('ERRO: Problema ao detectar enquadramento da moldura')
     return x,y,w,h
 
 def correcao_tamanho(img, w,h):
@@ -65,7 +62,6 @@ def emoldurar(imgs_path):
     result_path = imgs_path+'/result'
     if not os.path.isdir(imgs_path):
         print("ERRO: Imagens não encontradas")
-        return -1
     
     if not os.path.isdir(result_path):
         os.mkdir(result_path)
