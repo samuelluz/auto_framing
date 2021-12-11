@@ -40,23 +40,27 @@ def correcao_tamanho(img, w, h):
     img = cv2.resize(img,(w,h))
     return img
 
-def put_frame(img, mold, mold_bbox, mold_png):
+def put_frame(img, result, mold_bbox, mold_png):
     mold_h, mold_w, _ = mold_png.shape
     bbox_x, bbox_y, bbox_w, bbox_h = mold_bbox
     img = correcao_tamanho(img, bbox_w, bbox_h)
-    # ovr = np.zeros((mold_h,mold_w, 4), dtype="uint8")
-    ovr = mold
+    zeros_mold = np.zeros((mold_h,mold_w, 4), dtype="uint8")
+    zeros_mold[bbox_y:bbox_y+bbox_h, bbox_x:bbox_x+bbox_w,:] = img
 
-    ovr[bbox_y:bbox_y+bbox_h, bbox_x:bbox_x+bbox_w,:] = img
-    dst = cv2.bitwise_and(mold, (255-mold_png))
-    dst2 = cv2.bitwise_and(ovr, mold_png)
-    dst3 = cv2.bitwise_or(dst, dst2)
+    zeros_mold[:,:,3] = zeros_mold[:,:,3]*(mold_png[:,:,3]/255)
+    zeros_mold[:,:,2] = zeros_mold[:,:,2]*(mold_png[:,:,3]/255)
+    zeros_mold[:,:,1] = zeros_mold[:,:,1]*(mold_png[:,:,3]/255)
+    zeros_mold[:,:,0] = zeros_mold[:,:,0]*(mold_png[:,:,3]/255)
 
-    return dst3
+    dst2 = cv2.bitwise_or(result, zeros_mold)
+    return dst2
 
 def emoldurar(imgs_path):
     if os.path.isfile(mold_path) and mold_path.split('.')[-1] == "png":
         mold = cv2.imread(mold_path, cv2.IMREAD_UNCHANGED)
+        mold[:,:,2] = mold[:,:,2]*(mold[:,:,3]/255)
+        mold[:,:,1] = mold[:,:,1]*(mold[:,:,3]/255)
+        mold[:,:,0] = mold[:,:,0]*(mold[:,:,3]/255)
         mold_bboxs, mold_png = detectar_enquadramento(mold)
     else:
         print("ERRO: verifique se o nome do arquivo está correto e tente novamente.\n")
@@ -70,7 +74,6 @@ def emoldurar(imgs_path):
 
     imgs_list = os.listdir(imgs_path)
     imgs_list.sort()
-    mold_bboxs = mold_bboxs
     complete = False
     result = mold
     num_frames_put = 0
@@ -92,6 +95,7 @@ def emoldurar(imgs_path):
                     # cv2.waitKey(0)
                     cv2.imwrite(result_path+'/'+img_name, result)
                     num_frames_put = 0
+                    result = mold
 
                 elif i == len(imgs_list)-1:
                     # Se a ultima imagem não completar a moldura
@@ -110,6 +114,6 @@ def emoldurar(imgs_path):
                 print("ERRO: ao carregar imagem"+imgs_path+'/'+img_name+"\n")
 
 if __name__=="__main__":
-    mold_path = "/media/samuel/Workspace/auto_framing/molds/MoldPolaroide.png"
-    emoldurar("/media/samuel/Workspace/auto_framing/testes")
-
+    # mold_path = "/Users/samuelluzgomes/Pictures/Moldura-Foto.png"
+    mold_path = "/Users/samuelluzgomes/Documents/workspace/auto_framing/molds/MoldPolaroide.png"
+    emoldurar("/Users/samuelluzgomes/Pictures")
