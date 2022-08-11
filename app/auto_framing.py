@@ -27,15 +27,17 @@ def correcao_tamanho(img, w, h):
         img = cv2.resize(img,(new_img_w,new_img_h))
         dif_h = int((new_img_h-h)/2)
         # recorta o excedente da altura
-        img = img[dif_h:-dif_h,:,:]
+        if dif_h>0:
+            img = img[dif_h:-dif_h,:,:]
 
     else:
         # iguala a altura e ajusta a largura
         new_img_h = h
         img = cv2.resize(img,(new_img_w,new_img_h))
         dif_w = int((new_img_w-w)/2)
-        # recorta o excedente da largura
-        img = img[:,dif_w:-dif_w,:]
+        # recorta o excedente da altura
+        if dif_h>0:
+            img = img[dif_h:-dif_h,:,:]
     
     img = cv2.resize(img,(w,h))
     return img
@@ -88,7 +90,12 @@ def emoldurar(imgs_path):
                 mold_bbox = mold_bboxs.pop(0)
                 mold_bboxs.append(mold_bbox)
 
-                result = put_frame(img, result, mold_bbox, mold_png)
+                try:
+                    result = put_frame(img, result, mold_bbox, mold_png)
+                except Exception as err:
+                    print(err)
+                    print("ERRO: ao emoldurar imagem"+imgs_path+'/'+img_name+"\n")
+                    break
                 num_frames_put += 1
                 if num_frames_put == len(mold_bboxs):
                     # cv2.imshow("result", result)
@@ -104,7 +111,12 @@ def emoldurar(imgs_path):
                     img = cv2.imread(imgs_path+'/'+imgs_list[0])
                     # adiciona um canal a img
                     img = np.dstack([img, np.ones((img.shape[0], img.shape[1]), dtype="uint8") * 255])
-                    result = put_frame(img, result, mold_bbox, mold_png)
+                    try:
+                        result = put_frame(img, result, mold_bbox, mold_png)
+                    except Exception as err:
+                        print(err)
+                        print("ERRO: ao emoldurar imagem"+imgs_path+'/'+img_name+"\n")
+                        break
                     # cv2.imshow("result", result)
                     # cv2.waitKey(0)
                     cv2.imwrite(result_path+'/'+img_name, result)
