@@ -31,7 +31,8 @@ def correcao_tamanho(img, w, h):
         img = cv2.resize(img, (new_img_w, new_img_h))
         dif_h = int((new_img_h-h)/2)
         # recorta o excedente da altura
-        img = img[dif_h:-dif_h, :, :]
+        if dif_h>0:
+            img = img[dif_h:-dif_h, :, :]
 
     else:
         # iguala a altura e ajusta a largura
